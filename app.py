@@ -68,7 +68,7 @@ team_list = [
     "Mighty Mavericks",
 ]
 
-# --- OFFICIAL CAPTAINS & VICE-CAPTAINS ---
+# --- OFFICIAL LEADERSHIP ---
 team_leadership = {
     "Phantom Blues": {"c": "Shreyash Jaiswal", "vc": "Aahana Kapse"},
     "White Falcons": {"c": "Vedant Karande", "vc": "Divya Tiwari"},
@@ -83,9 +83,9 @@ team_leadership = {
 STATE_FILE = "auction_state.json"
 
 
-# Load or Initialize Players Data from Excel & JSON Persistence
+# Load or Initialize Players Data from Renamed Excel & JSON Persistence
 def load_data():
-  excel_file = "DOC-20260930-WA0016.xlsx"
+  excel_file = "players.xlsx"
   try:
     df_raw = pd.read_excel(excel_file)
     base_players = []
@@ -100,7 +100,10 @@ def load_data():
       })
     df_default = pd.DataFrame(base_players)
   except Exception as e:
-    st.error(f"Excel load karne mein error aayi: {e}")
+    st.error(
+        f"Error loading Excel file '{excel_file}': {e}. Please ensure"
+        " 'players.xlsx' is uploaded."
+    )
     df_default = pd.DataFrame(
         columns=["ID", "Name", "Year", "Role", "Select Team", "Price (Cr)"]
     )
@@ -157,14 +160,12 @@ if st.sidebar.button("🔄 Reset All Data"):
   if os.path.exists(STATE_FILE):
     os.remove(STATE_FILE)
   st.session_state.clear()
-  st.success("Data reset ho gaya!")
+  st.success("All data successfully reset!")
   st.rerun()
 
 # --- MAIN HEADER ---
 st.title("⚡ ECPL 2026 — Live Auction Tracker 🏏")
-st.markdown(
-    "Total Registered Players: **113**"
-)
+st.markdown("Multi-Device Live Sync Dashboard")
 st.markdown("---")
 
 # --- PHANTOM BLUES DASHBOARD ---
@@ -176,7 +177,7 @@ c1.metric("Remaining Purse", f"₹ {pb_data['purse']:.2f} Cr")
 c2.metric("Total Spent", f"₹ {pb_spent:.2f} Cr")
 c3.metric("Squad Size", f"{len(pb_data['squad'])} Players")
 
-with st.expander("🛡️ View Phantom Blues Squad Details"):
+with st.expander("🛡️️ View Phantom Blues Squad Details"):
   for p in pb_data["squad"]:
     st.text(
         f"• {p['Name']} — Role: {p.get('Role', 'Player')} (Price: ₹"
@@ -206,7 +207,7 @@ with col2:
     )
   else:
     selected_player = None
-    st.info("Sabhi players assign ho chuke hain!")
+    st.info("All registered players have been assigned!")
 
 with col3:
   sold_price = st.number_input(
@@ -230,16 +231,16 @@ if selected_player:
       st.session_state.players_df.at[idx, "Select Team"] = selected_team
       st.session_state.players_df.at[idx, "Price (Cr)"] = sold_price
 
-      # Save to server JSON file for multi-device sync
+      # Save state for cross-device sync
       save_data(st.session_state.players_df)
 
       st.success(
-          f"✅ {selected_player} ko {selected_team} mein ₹ {sold_price:.2f}"
-          " Cr mein kharid liya gaya!"
+          f"✅ {selected_player} successfully assigned to {selected_team} for ₹"
+          f" {sold_price:.2f} Cr!"
       )
       st.rerun()
     else:
-      st.error(f"❌ {selected_team} ke pas itna purse nahi hai!")
+      st.error(f"❌ {selected_team} does not have enough remaining purse!")
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("---")
@@ -291,5 +292,5 @@ edited_df = st.data_editor(
 if st.button("💾 Update All Changes"):
   st.session_state.players_df = edited_df
   save_data(edited_df)
-  st.success("🎉 Saare changes successfully save ho gaye hain!")
+  st.success("🎉 All team squads and purses updated successfully!")
   st.rerun()
